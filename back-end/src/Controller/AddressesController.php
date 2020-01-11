@@ -1,7 +1,11 @@
 <?php
 namespace App\Controller;
 header("Access-Control-Allow-Origin: *");
-use App\Controller\AppController;
+
+header('Access-Control-Allow-Methods: GET, POST, PATCH, PUT, DELETE');
+header("Access-Control-Allow-Headers: Content-Type, Origin, X-Auth-Token");
+header("Content-type:application/json");
+
 
 /**
  * Addresses Controller
@@ -49,13 +53,12 @@ class AddressesController extends AppController
      *
      * @return \Cake\Http\Response|null Redirects on successful add, renders view otherwise.
      */
-    public function add()
+    public function add($cep)
     {
         $this->autoRender = false;
         $address = $this->Addresses->newEntity();
-        if ($this->request->is('post')) {
-            $cep = $this->request->getData('cep');
-
+        if ($this->request->is('get', 'post')) {
+            $data = $this->request->getData('cep');
 
             $curl = curl_init();
 
@@ -101,13 +104,14 @@ class AddressesController extends AppController
         $address = $this->Addresses->get($id, [
             'contain' => []
         ]);
-        if ($this->request->is(['patch', 'post', 'put'])) {
-            $address = $this->Addresses->patchEntity($address, $this->request->getData());
+        if ($this->request->is(['patch','get', 'post', 'put'])) {
+            $address = $this->Addresses->patchEntity($address, $this->request->getData('data'));
             if ($this->Addresses->save($address)) {
 
                 return $this->response->withType("application/json")->withStringBody(json_encode(array('result' => 'success')));
             }
-            return $this->response->withType("application/json")->withStringBody(json_encode(array('result' => 'success')));
+
+            return $this->response->withType("application/json")->withStringBody(json_encode(array('result' => 'error')));
         }
     }
 
@@ -120,7 +124,7 @@ class AddressesController extends AppController
      */
     public function delete($id = null)
     {
-        $this->request->allowMethod(['post', 'delete']);
+        $this->request->allowMethod(['get', 'post', 'delete']);
         $address = $this->Addresses->get($id);
         if ($this->Addresses->delete($address)) {
 
